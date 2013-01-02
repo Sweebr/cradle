@@ -161,6 +161,41 @@ In `cradle` you can make this same query by using the `.view()` database functio
   });
 ```
 
+#### Querying a row with a specific key with Lucene ####
+Lets suppose that you have a design document that you've created with Lucene support:
+
+``` js
+  db.save('_design/user', {
+    views: {
+      username: {
+        map: 'function (doc) { if (doc.resource === 'User') { emit(doc.username, doc) } }'
+      }
+    },
+    indexes: {
+      usernames: {
+        index: 'function (doc){ index( 'default', doc._id ); if (doc.username) { index('username', doc.username, {store: 'yes'}) } }'
+      }
+    }
+  });
+```
+
+In CouchDB with Lucene support you could query this view directly by making an HTTP request to:
+
+```
+  /_design/User/_search/usernames/?q=username:luke
+```
+
+In `cradle` you can make this same query by using the `.view()` database function including the `lucene` key: 
+
+``` js
+  db.view('user/usernames', { q: 'username:luke', lucene: true }, function (err, doc) {
+      console.dir(doc);
+  });
+```
+
+You can also order it by adding the `sort` key or limit it by adding the `limit` key. For all options see the following page:
+https://github.com/rnewson/couchdb-lucene#search-parameters
+
 ### creating/updating documents ###
 
 In general, document creation is done with the `save()` method, while updating is done with `merge()`.
